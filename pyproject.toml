@@ -1,0 +1,12 @@
+[project]
+name = "order-repository-service"
+version = "0.1.0"
+description = "Order Repository Service"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "archipy>=3.6.0",
+    "dependency-injector>=4.48.1",
+    "fastapi>=0.116.1",
+    "uvicorn>=0.35.0",
+]
