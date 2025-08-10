@@ -131,6 +131,33 @@ pre-commit: ## Run pre-commit hooks
 .PHONY: check
 check: lint test ## Run all checks (linting and tests)
 
+.PHONY: update-es-mapping
+update-es-mapping:
+	@echo "Updating Elasticsearch 'orders' index mapping..."
+	@PYTHONPATH=. python scripts/elasticsearch/mapping_manager.py
+
+.PHONY: register-schemas
+register-schemas:
+	@echo "Registering Avro schemas with Schema Registry..."
+	@PYTHONPATH=. python scripts/schema_registry/register_schemas.py
+
+.PHONY: deploy-connector-es-orders
+deploy-connector-es-orders:
+	@echo "Deploying Elasticsearch sink connector for orders..."
+	@./scripts/connectors/manage_connectors.sh deploy connectors/config/elasticsearch-sink-orders.json
+
+.PHONY: status-connector-es-orders
+status-connector-es-orders:
+	@echo "Checking status of Elasticsearch sink connector for orders..."
+	@./scripts/connectors/manage_connectors.sh status connectors/config/elasticsearch-sink-orders.json
+
+.PHONY: manage-es-indices
+manage-es-indices:
+	@echo "Managing Elasticsearch indices..."
+	@PYTHONPATH=. python scripts/elasticsearch/manage_es_indices.py setup
+	@PYTHONPATH=. python scripts/elasticsearch/manage_es_indices.py ensure
+	@PYTHONPATH=. python scripts/elasticsearch/manage_es_indices.py rollover
+
 .PHONY: ci
 ci: ## Run CI pipeline locally
 	@echo "${BLUE}Running CI pipeline...${NC}"
