@@ -34,9 +34,8 @@ graph TD
         DB1["Legacy Databases ?"] -- "CDC Events" --> DEBEZIUM[Debezium] --> KAFKA
     end
 
-    %% Real-time Ingestion & Storage
-    subgraph "Real-time Ingestion & Storage"
-        KAFKA["<b>Apache Kafka</b><br/>Central Event Bus"] --> KC["Kafka Connect (S3 Sink)"] --> S3["<b>S3 (MinIO)</b><br/>Data Lake<br/>Permanent Raw Archive (Parquet)"]
+    subgraph "Real-time Ingestion"
+        KAFKA["<b>Apache Kafka</b><br/>Central Event Bus"]
     end
 
     %% Operational Path
@@ -45,27 +44,17 @@ graph TD
         KAFKA -- "Live Order Events" --> KFSQK_SPARK_STREAM["<b>ksqlDB | Spark Streaming</b><br/>Processes & Denormalizes"] --> ES["<b>Elasticsearch</b><br/>Fast Search Layer<br/>(Recent Data)"]
     end
 
-    %% Analytical Path (Phased)
-    subgraph "Analytical Path (Phased Approach)"
+    %% Analytical Path (Direct from Kafka)
+    subgraph "Analytical Path"
         direction TB
-
-        subgraph "Phase 1: General Analytics (Lakehouse Model)"
-            PRESTO["<b>Presto / Trino</b><br/>Interactive SQL Engine on Data Lake"]
-            S3 -- "Full Historical Data" --> PRESTO
-        end
-
-        subgraph "Phase 2 (Future Optimization): High-Speed Dashboards"
-            INGEST_OLAP["Data Ingestion<br/>(ksqlDB | Spark Batch)"]
-            CLICKHOUSE["<b>ClickHouse</b><br/>High-Performance OLAP DB"]
-            S3 -- "Loads Curated Data" --> INGEST_OLAP --> CLICKHOUSE
-        end
+        KAFKA -- "Analytical Events Stream" --> CLICKHOUSE["<b>ClickHouse</b><br/>High-Performance OLAP DB"]
     end
 
     %% API & Consumers
     subgraph "API & Consumers"
         API["<b>Order Repository API</b><br/>(Python/FastAPI)"]
         API -- "Hot Queries (last 2 years)" --> ES
-        API -- "Cold Queries (> 2 years)" --> PRESTO
+        API -- "Analytical Queries" --> CLICKHOUSE
     end
 
     %% End Users
@@ -73,8 +62,7 @@ graph TD
         direction TB
         CRM["CRM"] --> API
         OMS["OMS"] --> API
-        SERVICES["Outher Services"] --> API
-        ANALYSTS["BI Developer"] --> PRESTO
+        SERVICES["Other Services"] --> API
         ANALYSTS["BI Developer"] --> CLICKHOUSE
     end
 ```
