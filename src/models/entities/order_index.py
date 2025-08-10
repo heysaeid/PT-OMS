@@ -118,7 +118,11 @@ class Address(InnerDoc):
 class ShipmentHistory(InnerDoc):
     status = Keyword(ignore_above=128)
     timestamp = Date()
-    recipientName = Text(analyzer=persian_analyzer, fields={"keyword": Keyword()}, index=False)
+    recipientName = Text(
+        analyzer=persian_analyzer,
+        fields={"keyword": Keyword()},
+        index=False,
+    )
 
 
 class ShipmentOrder(InnerDoc):
@@ -213,8 +217,8 @@ class OrderIndex(Document):
                             "arabic_normalization",
                             "persian_normalization",
                         ],
-                    }
-                }
+                    },
+                },
             },
         }
 

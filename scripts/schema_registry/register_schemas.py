@@ -6,7 +6,8 @@ from confluent_kafka.schema_registry import SchemaRegistryClient, Schema
 from confluent_kafka.schema_registry.error import SchemaRegistryError
 
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
 
@@ -23,29 +24,31 @@ def derive_subject_name(file_path: str) -> str:
 
 
 def register_schema(
-    client: SchemaRegistryClient, subject: str, schema_str: str
+    client: SchemaRegistryClient,
+    subject: str,
+    schema_str: str,
 ) -> None:
     new_schema = Schema(schema_str, schema_type="AVRO")
 
     try:
         latest_version = client.get_latest_version(subject)
         logging.info(
-            f"Subject '{subject}' already exists with version {latest_version.version}."
+            f"Subject '{subject}' already exists with version {latest_version.version}.",
         )
 
         is_compatible = client.test_compatibility(subject, new_schema)
 
         if is_compatible:
             logging.info(
-                f"Schema for '{subject}' is compatible. Registering new version..."
+                f"Schema for '{subject}' is compatible. Registering new version...",
             )
             schema_id = client.register_schema(subject, new_schema)
             logging.info(
-                f"Successfully registered schema for '{subject}' with ID {schema_id}."
+                f"Successfully registered schema for '{subject}' with ID {schema_id}.",
             )
         else:
             logging.error(
-                f"SCHEMA INCOMPATIBLE! Schema for '{subject}' is not compatible with the latest version. Aborting."
+                f"SCHEMA INCOMPATIBLE! Schema for '{subject}' is not compatible with the latest version. Aborting.",
             )
             raise ValueError(f"Incompatible schema for subject {subject}")
 
@@ -54,7 +57,7 @@ def register_schema(
             logging.info(f"Subject '{subject}' not found. Registering as a new schema.")
             schema_id = client.register_schema(subject, new_schema)
             logging.info(
-                f"Successfully registered schema for '{subject}' with ID {schema_id}."
+                f"Successfully registered schema for '{subject}' with ID {schema_id}.",
             )
         else:
             logging.error(f"An error occurred with the Schema Registry: {e}")
@@ -93,7 +96,7 @@ def main(files_to_register: list[str] | None = None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Register Avro schemas with the Schema Registry."
+        description="Register Avro schemas with the Schema Registry.",
     )
     parser.add_argument(
         "--file",

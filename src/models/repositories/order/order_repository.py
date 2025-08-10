@@ -14,11 +14,13 @@ class OrderRepository:
         self.elastic_adapter = elastic_adapter
 
     async def get_order_by_id(
-        self, input_dto: GetOrderByIdQueryDTO
+        self,
+        input_dto: GetOrderByIdQueryDTO,
     ) -> GetOrderByIdResponseDTO:
         return await self.elastic_adapter.get_order_by_id(input_dto)
 
     async def search_orders(
-        self, input_dto: SearchOrdersQueryDTO
+        self,
+        input_dto: SearchOrdersQueryDTO,
     ) -> SearchOrdersResponseDTO:
         return await self.elastic_adapter.search_orders(input_dto)

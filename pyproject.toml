@@ -16,10 +16,18 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "add-trailing-comma>=3.2.0",
     "authlib>=1.6.1",
+    "black>=25.1.0",
     "cachetools>=6.1.0",
+    "codespell>=2.4.1",
     "elasticsearch-dsl[async]>=8.18.0",
     "faker>=37.5.3",
     "httpx>=0.28.1",
     "locust>=2.37.14",
+    "mypy>=1.17.1",
+    "pre-commit>=4.3.0",
+    "pre-commit-hooks>=6.0.0",
+    "ruff>=0.12.8",
+    "validate-pyproject>=0.24.1",
 ]

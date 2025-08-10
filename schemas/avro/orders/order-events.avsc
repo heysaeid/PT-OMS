@@ -1,0 +1,393 @@
+{
+  "type": "record",
+  "name": "UnifiedOrder",
+  "namespace": "com.example.ecommerce",
+  "doc": "A complete representation of a customer order, including products, services, payment, and shipping.",
+  "fields": [
+    {
+      "name": "order",
+      "type": {
+        "type": "record",
+        "name": "Order",
+        "doc": "Main order object containing all related details.",
+        "fields": [
+          {
+            "name": "orderId",
+            "type": "string",
+            "doc": "The unique identifier for the order, from tracking_code."
+          },
+          {
+            "name": "status",
+            "type": {
+              "type": "enum",
+              "name": "OrderStatus",
+              "symbols": ["PENDING", "CONFIRMED", "PURCHASED", "PROCESSING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "FAILED"]
+            },
+            "doc": "The current status of the order."
+          },
+          {
+            "name": "createdAt",
+            "type": "string",
+            "doc": "Timestamp when the order was created."
+          },
+          {
+            "name": "updatedAt",
+            "type": "string",
+            "doc": "Timestamp when the order was last updated."
+          },
+          {
+            "name": "channel",
+            "type": "string",
+            "doc": "The sales channel through which the order was placed."
+          },
+          {
+            "name": "customerAccount",
+            "type": {
+              "type": "record",
+              "name": "CustomerAccount",
+              "doc": "Information about the customer's account.",
+              "fields": [
+                { "name": "accountId", "type": "string", "doc": "Unique identifier for the customer's profile." },
+                {
+                  "name": "type",
+                  "type": { "type": "enum", "name": "CustomerType", "symbols": ["INDIVIDUAL", "BUSINESS"] },
+                  "doc": "Type of the customer account."
+                },
+                { "name": "loyaltyTier", "type": "string", "default": "STANDARD", "doc": "Customer's loyalty tier." },
+                { "name": "vip", "type": "boolean", "default": false, "doc": "Indicates if the customer is a VIP." },
+                {
+                  "name": "customerSince",
+                  "type": ["null", { "type": "int", "logicalType": "date" }],
+                  "default": null,
+                  "doc": "Date when the customer first registered."
+                },
+                { "name": "preferredLanguage", "type": "string", "default": "fa", "doc": "Customer's preferred language." }
+              ]
+            }
+          },
+          {
+            "name": "party",
+            "type": {
+              "type": "record",
+              "name": "Party",
+              "doc": "Personal information of the customer.",
+              "fields": [
+                { "name": "nationalId", "type": ["null", "string"], "default": null, "doc": "Customer's national ID." },
+                { "name": "fullName", "type": ["null", "string"], "default": null, "doc": "Customer's full name." },
+                {
+                  "name": "contactPoints",
+                  "type": {
+                    "type": "record",
+                    "name": "ContactPoints",
+                    "fields": [
+                      { "name": "mobile", "type": ["null", "string"], "default": null },
+                      { "name": "email", "type": ["null", "string"], "default": null },
+                      {
+                        "name": "preferredMethod",
+                        "type": { "type": "enum", "name": "ContactMethod", "symbols": ["SMS", "EMAIL", "PHONE"] },
+                        "default": "SMS"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "birthDate",
+                  "type": ["null", { "type": "int", "logicalType": "date" }],
+                  "default": null,
+                  "doc": "Customer's date of birth."
+                },
+                {
+                  "name": "gender",
+                  "type": ["null", { "type": "enum", "name": "Gender", "symbols": ["MALE", "FEMALE", "OTHER", "UNKNOWN"] }],
+                  "default": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "priceSummary",
+            "type": {
+              "type": "record",
+              "name": "PriceSummary",
+              "fields": [
+                { "name": "totalAmount", "type": "long", "doc": "The total amount before discounts." },
+                { "name": "discountAmount", "type": "long", "default": 0, "doc": "Total discount amount applied." },
+                { "name": "payableAmount", "type": "long", "doc": "The final amount to be paid." },
+                { "name": "currency", "type": "string", "doc": "Currency code (e.g., TRY, IRR)." }
+              ]
+            }
+          },
+          {
+            "name": "appliedDiscounts",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "AppliedDiscount",
+                "fields": [
+                  { "name": "code", "type": "string" },
+                  { "name": "description", "type": ["null", "string"], "default": null },
+                  { "name": "amount", "type": "long" }
+                ]
+              }
+            },
+            "default": [],
+            "doc": "List of discounts applied to the order."
+          },
+          {
+            "name": "productOrderItems",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "ProductOrderItem",
+                "fields": [
+                  { "name": "itemId", "type": "string" },
+                  { "name": "productId", "type": "string" },
+                  { "name": "sku", "type": "string" },
+                  { "name": "status", "type": "OrderStatus" },
+                  { "name": "type", "type": { "type": "enum", "name": "ProductType", "symbols": ["PHYSICAL", "DIGITAL"] } },
+                  { "name": "quantity", "type": "int" },
+                  { "name": "unitPrice", "type": "long" },
+                  { "name": "totalPrice", "type": "long" },
+                  { "name": "stockLocation", "type": ["null", "string"], "default": null },
+                  {
+                    "name": "attributes",
+                    "type": {
+                      "type": "record",
+                      "name": "ProductAttributes",
+                      "fields": [
+                        { "name": "brand", "type": "string" },
+                        { "name": "model", "type": "string" },
+                        { "name": "mac_id", "type": ["null", "string"], "default": null },
+                        { "name": "category", "type": "string" }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "default": []
+          },
+          {
+            "name": "serviceOrderItems",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "ServiceOrderItem",
+                "fields": [
+                  { "name": "itemId", "type": "string" },
+                  { "name": "productId", "type": "string" },
+                  { "name": "sku", "type": "string" },
+                  { "name": "status", "type": "OrderStatus" },
+                  { "name": "type", "type": { "type": "enum", "name": "ServiceType", "symbols": ["DIGITAL_SERVICE", "INSTALLATION", "MAINTENANCE"] } },
+                  { "name": "quantity", "type": "int" },
+                  { "name": "unitPrice", "type": "long" },
+                  { "name": "totalPrice", "type": "long" },
+                  { "name": "bundleId", "type": ["null", "string"], "default": null },
+                  {
+                    "name": "attributes",
+                    "type": {
+                      "type": "record",
+                      "name": "ServiceAttributes",
+                      "fields": [
+                        { "name": "planType", "type": "string" },
+                        { "name": "planName", "type": "string" },
+                        { "name": "dataAllowance", "type": "string" },
+                        { "name": "bandwidth", "type": "string" },
+                        { "name": "category", "type": "string" }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "provisioning",
+                    "type": {
+                      "type": "record",
+                      "name": "Provisioning",
+                      "fields": [
+                        { "name": "status", "type": { "type": "enum", "name": "ProvisioningStatus", "symbols": ["PENDING", "ACTIVE", "INACTIVE", "SUSPENDED", "DEACTIVATED"] } },
+                        { "name": "provisioningType", "type": "string" },
+                        { "name": "targetIdentifier", "type": "string" },
+                        { "name": "serviceIds", "type": { "type": "array", "items": "string" }, "default": [] },
+                        { "name": "activationDate", "type": ["null", { "type": "long", "logicalType": "timestamp-millis" }], "default": null },
+                        { "name": "billingStartDate", "type": ["null", { "type": "long", "logicalType": "timestamp-millis" }], "default": null }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "default": []
+          },
+          {
+            "name": "shipmentOrders",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "ShipmentOrder",
+                "fields": [
+                  { "name": "shipmentId", "type": "string" },
+                  { "name": "status", "type": "OrderStatus" },
+                  { "name": "trackingNumber", "type": ["null", "string"], "default": null },
+                  { "name": "carrier", "type": ["null", "string"], "default": null },
+                  { "name": "items", "type": { "type": "array", "items": "string" }, "doc": "Array of itemIds included in this shipment." },
+                  {
+                    "name": "address",
+                    "type": {
+                      "type": "record",
+                      "name": "Address",
+                      "fields": [
+                        { "name": "fullAddress", "type": "string" },
+                        { "name": "city", "type": "string" },
+                        { "name": "postalCode", "type": ["null", "string"], "default": null },
+                        { "name": "country", "type": "string" }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "history",
+                    "type": {
+                      "type": "array",
+                      "items": {
+                        "type": "record",
+                        "name": "ShipmentHistory",
+                        "fields": [
+                          { "name": "status", "type": "OrderStatus" },
+                          { "name": "timestamp", "type": ["null", { "type": "long", "logicalType": "timestamp-millis" }], "default": null },
+                          { "name": "recipientName", "type": ["null", "string"], "default": null }
+                        ]
+                      }
+                    },
+                    "default": []
+                  }
+                ]
+              }
+            },
+            "default": []
+          },
+          {
+            "name": "payment",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "Payment",
+                "fields": [
+                  { "name": "method", "type": "string" },
+                  { "name": "status", "type": { "type": "enum", "name": "PaymentStatus", "symbols": ["PENDING", "SUCCESSFUL", "FAILED", "REFUNDED"] } },
+                  { "name": "provider", "type": ["null", "string"], "default": null },
+                  {
+                    "name": "transactions",
+                    "type": {
+                      "type": "array",
+                      "items": {
+                        "type": "record",
+                        "name": "Transaction",
+                        "fields": [
+                          { "name": "id", "type": "string" },
+                          { "name": "type", "type": { "type": "enum", "name": "TransactionType", "symbols": ["SALE", "REFUND", "AUTHORIZATION"] } },
+                          { "name": "amount", "type": "long" },
+                          { "name": "processedAt", "type": { "type": "long", "logicalType": "timestamp-millis" } },
+                          { "name": "authorizationCode", "type": ["null", "string"], "default": null }
+                        ]
+                      }
+                    },
+                    "default": []
+                  }
+                ]
+              }
+            },
+            "default": []
+          },
+          {
+            "name": "invoices",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "Invoice",
+                "fields": [
+                  { "name": "invoiceId", "type": "string" },
+                  { "name": "status", "type": { "type": "enum", "name": "InvoiceStatus", "symbols": ["DRAFT", "ISSUED", "PAID", "VOID"] } },
+                  { "name": "issueDate", "type": { "type": "long", "logicalType": "timestamp-millis" } },
+                  { "name": "amount", "type": "long" },
+                  { "name": "taxAmount", "type": "long", "default": 0 },
+                  { "name": "currency", "type": "string" }
+                ]
+              }
+            },
+            "default": []
+          },
+          {
+            "name": "returns",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "Return",
+                "doc": "Placeholder for return information.",
+                "fields": [
+                  { "name": "returnId", "type": "string" },
+                  { "name": "status", "type": "string" },
+                  { "name": "reason", "type": ["null", "string"], "default": null }
+                ]
+              }
+            },
+            "default": [],
+            "doc": "List of returns associated with this order."
+          },
+          {
+            "name": "communications",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "Communication",
+                "doc": "Placeholder for customer communication records.",
+                "fields": [
+                  { "name": "communicationId", "type": "string" },
+                  { "name": "channel", "type": "string" },
+                  { "name": "timestamp", "type": { "type": "long", "logicalType": "timestamp-millis" } },
+                  { "name": "content", "type": "string" }
+                ]
+              }
+            },
+            "default": [],
+            "doc": "Log of communications sent to the customer regarding this order."
+          },
+          {
+            "name": "auditTrail",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "AuditTrail",
+                "fields": [
+                  { "name": "timestamp", "type": ["null", { "type": "long", "logicalType": "timestamp-millis" }], "default": null },
+                  { "name": "action", "type": "string" },
+                  { "name": "performedBy", "type": "string" },
+                  {
+                    "name": "details",
+                    "type": {
+                      "type": "record",
+                      "name": "AuditDetails",
+                      "fields": [
+                        { "name": "field", "type": ["null", "string"], "default": null },
+                        { "name": "from", "type": ["null", "string"], "default": null },
+                        { "name": "to", "type": ["null", "string"], "default": null }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "default": [],
+            "doc": "A log of all changes and actions performed on the order."
+          }
+        ]
+      }
+    }
+  ]
+}
