@@ -1,0 +1,74 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: pretty-format-json
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: codespell
+        name: codespell
+        entry: uv run codespell --toml pyproject.toml
+        files: \.(py|pyi)$
+        language: system
+
+      - id: black
+        name: black
+        entry: uv run black --config pyproject.toml
+        files: \.(py|pyi)$
+        language: system
+        exclude: ^(features|scripts)/
+
+      - id: ruff
+        name: ruff
+        entry: uv run ruff check --config pyproject.toml --fix
+        files: \.(py|pyi)$
+        language: system
+        exclude: ^(features|scripts)/
+
+      - id: add-trailing-comma
+        name: add-trailing-comma
+        entry: uv run add-trailing-comma
+        files: \.(py|pyi)$
+        language: system
+
+      - id: validate-pyproject
+        name: validate-pyproject
+        entry: uv run validate-pyproject pyproject.toml
+        language: system
+        pass_filenames: false
+
+      - id: mypy
+        name: mypy
+        entry: uv run mypy --config-file pyproject.toml
+        files: \.(py|pyi)$
+        language: system
+        exclude: ^(features|scripts)/
+
+  - repo: local
+    hooks:
+      - id: uv-lock
+        name: uv lock
+        entry: uv lock
+        language: system
+        pass_filenames: false
+        stages: [post-checkout, post-merge]
+
+      - id: uv-sync
+        name: uv sync (dev)
+        entry: uv sync --group dev
+        language: system
+        pass_filenames: false
+        stages: [post-checkout, post-merge]
+
+      - id: pip-check
+        name: pip check
+        entry: uv run pip check
+        language: system
+        pass_filenames: false

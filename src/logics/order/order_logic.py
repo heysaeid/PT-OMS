@@ -12,11 +12,13 @@ class OrderLogic:
         self.order_repository = order_repository
 
     async def get_order_by_id(
-        self, input_dto: GetOrderByIdInputDTO
+        self,
+        input_dto: GetOrderByIdInputDTO,
     ) -> GetOrderByIdOutputDTO:
         return await self.order_repository.get_order_by_id(input_dto)
 
     async def search_orders(
-        self, input_dto: SearchOrdersInputDTO
+        self,
+        input_dto: SearchOrdersInputDTO,
     ) -> SearchOrdersOutputDTO:
         return await self.order_repository.search_orders(input_dto)

@@ -101,7 +101,7 @@ def _generate_payment():
                 "amount": random.randint(100000, 5000000),
                 "processedAt": to_timestamp_ms(datetime.now()),
                 "authorizationCode": fake.md5(),
-            }
+            },
         ],
     }
 
@@ -173,7 +173,7 @@ def generate_unified_order_payload(order_id=None, status=None):
             if current_status == "SHIPPED"
             else [],
             "auditTrail": [_generate_audit_trail()],
-        }
+        },
     }
     return payload
 

@@ -5,7 +5,6 @@ from typing import Any
 from elasticsearch import NotFoundError  # Import specific exception
 from archipy.adapters.elasticsearch.adapters import AsyncElasticsearchAdapter
 
-from src.configs.config import settings
 from src.models.dtos.order.order_repository_interface_dtos import (
     GetOrderByIdQueryDTO,
     GetOrderByIdResponseDTO,
@@ -32,13 +31,16 @@ class OrderElasticAdapter:
     _CREATED_AT_FIELD = "order.createdAt"
 
     def __init__(
-        self, elastic_client: AsyncElasticsearchAdapter, index_name: str | None = None
+        self,
+        elastic_client: AsyncElasticsearchAdapter,
+        index_name: str | None = None,
     ):
         self.elastic_client = elastic_client
         self.index_name = index_name or self._INDEX_NAME
 
     async def get_order_by_id(
-        self, input_dto: GetOrderByIdQueryDTO
+        self,
+        input_dto: GetOrderByIdQueryDTO,
     ) -> GetOrderByIdResponseDTO | None:
         """
         Fetches a single order document by its ID from Elasticsearch.
@@ -48,13 +50,14 @@ class OrderElasticAdapter:
         """
         try:
             response = await self.elastic_client.get(
-                index=self.index_name, id=input_dto.order_id
+                index=self.index_name,
+                id=input_dto.order_id,
             )
             source = response.get("_source", {})
             order_data = source.get("order", {})
             if not order_data:
                 logger.warning(
-                    f"Order data is empty for document ID: {input_dto.order_id}"
+                    f"Order data is empty for document ID: {input_dto.order_id}",
                 )
                 return None
 
@@ -68,7 +71,8 @@ class OrderElasticAdapter:
             raise
 
     async def search_orders(
-        self, input_dto: SearchOrdersQueryDTO
+        self,
+        input_dto: SearchOrdersQueryDTO,
     ) -> SearchOrdersResponseDTO:
         query = self._build_search_query(input_dto)
 
@@ -86,7 +90,7 @@ class OrderElasticAdapter:
                 except Exception as e:
                     doc_id = hit.get("_id")
                     logger.error(
-                        f"Failed to validate order data for doc ID {doc_id}: {e}"
+                        f"Failed to validate order data for doc ID {doc_id}: {e}",
                     )
 
         total_pages = (total_hits + input_dto.size - 1) // input_dto.size
@@ -104,10 +108,10 @@ class OrderElasticAdapter:
         filter_map = {
             input_dto.order_id: {"term": {self._ORDER_ID_FIELD: input_dto.order_id}},
             input_dto.order_status: {
-                "term": {self._STATUS_FIELD: input_dto.order_status}
+                "term": {self._STATUS_FIELD: input_dto.order_status},
             },
             input_dto.national_id: {
-                "term": {self._NATIONAL_ID_FIELD: input_dto.national_id}
+                "term": {self._NATIONAL_ID_FIELD: input_dto.national_id},
             },
             input_dto.mobile: {"term": {self._MOBILE_FIELD: input_dto.mobile}},
             input_dto.email: {"term": {self._EMAIL_FIELD: input_dto.email}},
@@ -127,13 +131,13 @@ class OrderElasticAdapter:
                             self._CREATED_AT_FIELD: {
                                 "gte": start_date.isoformat(),
                                 "lt": end_date.isoformat(),
-                            }
-                        }
-                    }
+                            },
+                        },
+                    },
                 )
             except ValueError:
                 logger.warning(
-                    f"Invalid date format provided: {input_dto.order_date}. Ignoring date filter."
+                    f"Invalid date format provided: {input_dto.order_date}. Ignoring date filter.",
                 )
 
         from_ = (input_dto.page - 1) * input_dto.size

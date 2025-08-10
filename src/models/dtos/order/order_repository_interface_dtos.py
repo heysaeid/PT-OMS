@@ -28,7 +28,8 @@ class SearchOrdersQueryDTO(BaseModel):
     size: int = Field(10, gt=0, le=100)
 
     sort_by: SortOrderByType = Field(
-        SortOrderByType.CREATED_AT, description="Sort by field"
+        SortOrderByType.CREATED_AT,
+        description="Sort by field",
     )
     sort_order: SortType = Field(SortType.DESC, description="Sort order asc or desc")
 

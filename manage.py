@@ -4,11 +4,14 @@ import uvicorn
 from src.configs.containers import ServiceContainer
 from src.configs.config import Config
 from archipy.helpers.utils.app_utils import AppUtils
+from src.configs.dispatcher import set_dispatch_routes
 
 container = ServiceContainer()
 
 app = AppUtils.create_fastapi_app()
 app.container = container
+
+set_dispatch_routes(app)
 
 if __name__ == "__main__":
     runtime_configs = Config.global_config()

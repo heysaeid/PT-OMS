@@ -1,7 +1,7 @@
 # Variables
-PYTHON := poetry run
-POETRY := poetry
-PRE_COMMIT := poetry run pre-commit
+PYTHON := uv run
+UV := uv
+PRE_COMMIT := uv run pre-commit
 PROJECT_NAME := order-repository-service
 PYTHON_FILES := $(PROJECT_NAME) src
 
@@ -23,28 +23,30 @@ help: ## Show this help message
 .PHONY: setup
 setup: ## Setup project pre-requisites
 	@echo "${BLUE}Setup project pre-requisites...${NC}"
-	@echo "${GREEN}Installing poetry (may need your sudo password)...${NC}"
-	sudo apt install pipx
-	pipx install poetry
-	pipx ensurepath
-	poetry completions bash >> ~/.bash_completion
+	@echo "${GREEN}Installing uv (may need your sudo password)...${NC}"
+	curl -LsSf https://astral.sh/uv/install.sh | sh
+	@echo "${GREEN}Adding uv to PATH...${NC}"
+	echo 'export PATH="$$HOME/.cargo/bin:$$PATH"' >> ~/.bashrc
+	@echo "${YELLOW}Please restart your shell or run: source ~/.bashrc${NC}"
+	@echo "${GREEN}Creating virtual environment...${NC}"
+	uv venv --python 3.13
 
 .PHONY: install
 install: ## Install project dependencies
 	@echo "${BLUE}Installing project dependencies...${NC}"
-	$(POETRY) install
+	$(UV) sync
 	$(PRE_COMMIT) install
 
 .PHONY: install-dev
-install-dev: ## Install project dependencies
-	@echo "${BLUE}Installing project dependencies...${NC}"
-	$(POETRY) install --with dev --all-extras
+install-dev: ## Install project dependencies with dev dependencies
+	@echo "${BLUE}Installing project dependencies with dev dependencies...${NC}"
+	$(UV) sync --group dev
 	$(PRE_COMMIT) install
 
 .PHONY: update
 update: ## Update dependencies to their latest versions
 	@echo "${BLUE}Updating dependencies...${NC}"
-	$(POETRY) update
+	$(UV) lock --upgrade
 
 .PHONY: clean
 clean: ## Remove build artifacts and cache directories
@@ -55,6 +57,7 @@ clean: ## Remove build artifacts and cache directories
 	rm -rf .coverage
 	rm -rf htmlcov/
 	rm -rf .mypy_cache/
+	rm -rf .uv_cache/
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
@@ -69,49 +72,34 @@ lint: ## Run all linters
 	$(PYTHON) ruff check --config pyproject.toml  $(PYTHON_FILES)
 	$(PYTHON) mypy --config-file pyproject.toml $(PYTHON_FILES)
 
-.PHONY: behave
-behave: ## Run tests with behave
+.PHONY: test
+test: ## Run tests with behave
 	@echo "${BLUE}Running tests...${NC}"
 	$(PYTHON) behave
 
+.PHONY: behave
+behave: test ## Alias for test target
+
 .PHONY: build
-build: clean ## Build project distribution
-	@echo "${BLUE}Building project distribution...${NC}"
-	$(POETRY) build
+build: ## Build the project
+	@echo "${BLUE}Building project...${NC}"
+	$(UV) build
 
-.PHONY: version
-version: ## Display current version
-	@echo "${BLUE}Current version:${NC}"
-	@$(POETRY) version
-	@echo "${YELLOW}Current tag(Fetching...):${NC}"
-	@git fetch && git describe --tags  --abbrev=0
+.PHONY: add
+add: ## Add a new dependency (usage: make add PACKAGE=package-name)
+	@echo "${BLUE}Adding dependency: $(PACKAGE)...${NC}"
+	$(UV) add $(PACKAGE)
 
-.PHONY: bump-patch
-bump-patch: ## Bump patch version
-	@echo "${BLUE}Bumping patch version...${NC}"
-	@if [ -n "$(message)" ]; then \
-		$(PYTHON) python scripts/bump_version.py patch -m "$(message)"; \
-	else \
-		$(PYTHON) python scripts/bump_version.py patch -m "$$(git log -1 --pretty=%s)"; \
-	fi
+.PHONY: add-dev
+add-dev: ## Add a new dev dependency (usage: make add-dev PACKAGE=package-name)
+	@echo "${BLUE}Adding dev dependency: $(PACKAGE)...${NC}"
+	$(UV) add --group dev $(PACKAGE)
 
-.PHONY: bump-minor
-bump-minor: ## Bump minor version
-	@echo "${BLUE}Bumping minor version...${NC}"
-	@if [ -n "$(message)" ]; then \
-		$(PYTHON) python scripts/bump_version.py minor -m "$(message)"; \
-	else \
-		$(PYTHON) python scripts/bump_version.py minor -m "$$(git log -1 --pretty=%s)"; \
-	fi
+.PHONY: remove
+remove: ## Remove a dependency (usage: make remove PACKAGE=package-name)
+	@echo "${BLUE}Removing dependency: $(PACKAGE)...${NC}"
+	$(UV) remove $(PACKAGE)
 
-.PHONY: bump-major
-bump-major: ## Bump major version
-	@echo "${BLUE}Bumping major version...${NC}"
-	@if [ -n "$(message)" ]; then \
-		$(PYTHON) python scripts/bump_version.py major -m "$(message)"; \
-	else \
-		$(PYTHON) python scripts/bump_version.py major -m "$$(git log -1 --pretty=%s)"; \
-	fi
 
 .PHONY: docker-build
 docker-build: ## Build Docker image
